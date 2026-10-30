@@ -1,0 +1,21 @@
+# Also read by installer/install.sh, so ISO and "existing Debian" install match.
+xorg
+openbox
+tint2
+xterm
+x11-xserver-utils
+lightdm
+lightdm-gtk-greeter
+dbus-x11
+network-manager
+network-manager-gnome
+kdeconnect
+pipewire-audio
+pavucontrol
+fonts-noto-core
+fonts-noto-color-emoji
+python3-yaml
+sudo
+curl
+ca-certificates
+gnupg

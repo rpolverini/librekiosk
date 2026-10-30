@@ -1,0 +1,7 @@
+# System-wide Openbox autostart (installed to /etc/xdg/openbox/autostart)
+[ -r /etc/librekiosk/env ] && . /etc/librekiosk/env
+[ "${LK_NO_BLANK:-1}" = 1 ] && xset s off s noblank -dpms
+tint2 &
+nm-applet &
+[ "${LK_KDECONNECT:-1}" = 1 ] && kdeconnect-indicator &
+librekiosk-browser &

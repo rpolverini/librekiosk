@@ -1,0 +1,4 @@
+#!/bin/sh
+# Same installer as "existing Debian" mode; build-iso.sh stages the repo in /opt/librekiosk.
+set -e
+/opt/librekiosk/installer/install.sh

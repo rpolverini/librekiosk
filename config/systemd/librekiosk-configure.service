@@ -1,0 +1,12 @@
+[Unit]
+Description=Apply LibreKiosk configuration
+After=live-config.service
+Before=NetworkManager.service display-manager.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/librekiosk-configure
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target

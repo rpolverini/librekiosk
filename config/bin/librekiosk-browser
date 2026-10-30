@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+# Start Brave with the settings from /etc/librekiosk/env; restart it after a crash.
+[ -r /etc/librekiosk/env ] && . /etc/librekiosk/env
+home=${LK_HOMEPAGE:-https://www.youtube.com/}
+
+# Standard profile (~/.config/BraveSoftware); basic password store so logins persist without a keyring.
+flags=(--no-first-run --no-default-browser-check --password-store=basic)
+[ "${LK_FULLSCREEN:-0}" = 1 ] && flags+=(--start-fullscreen)
+if [ "${LK_ADDRESS_BAR:-1}" = 1 ] && [ "${LK_TABS:-1}" = 1 ]; then
+  target=("$home")
+else
+  flags+=("--app=$home")   # only way to hide bar/tabs; Brave can't hide them separately
+  target=()
+fi
+
+while true; do
+  brave-browser "${flags[@]}" "${target[@]}"
+  rc=$?
+  case $rc in 0|130|143) exit 0 ;; esac   # closed normally or killed by the "Quit Brave" menu item
+  [ "${LK_RESTART:-1}" = 1 ] || exit $rc
+  sleep 2
+done

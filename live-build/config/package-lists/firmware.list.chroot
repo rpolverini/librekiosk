@@ -1,0 +1,7 @@
+# Needs the non-free-firmware APT component. install.sh treats failure here as a warning.
+firmware-linux
+firmware-misc-nonfree
+firmware-amd-graphics
+firmware-realtek
+firmware-atheros
+firmware-iwlwifi

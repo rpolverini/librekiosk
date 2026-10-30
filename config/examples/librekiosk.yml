@@ -1,0 +1,27 @@
+# LibreKiosk configuration. Installed to /etc/librekiosk/librekiosk.yml.
+# Validated and applied by librekiosk-configure (at every boot, or `make configure`).
+system:
+  hostname: "librekiosk"
+  user: "libre"                 # account used for the graphical session and Brave
+  disable_screen_blanking: true
+  disable_suspend: true
+
+browser:
+  homepage: "https://www.youtube.com/"
+  fullscreen: false
+  show_address_bar: true        # Brave cannot hide these separately: if either is
+  show_tabs: true               # false, Brave runs in --app mode (no bar, no tabs)
+  restart_on_crash: true
+  shields: true
+
+wifi:
+  enabled: true
+  ssid: "MyWifi"
+  password: "CHANGE_ME"         # "CHANGE_ME" = not configured, Wi-Fi is skipped
+  # Optional: keep credentials out of this file. The secrets file uses the same
+  # wifi: {ssid, password} keys and should be `chmod 600`, root-owned, never in Git.
+  secrets_file: ""              # e.g. /etc/librekiosk/secrets.yml
+  autoconnect: true
+
+kdeconnect:
+  enabled: true
