@@ -2,7 +2,7 @@ SUDO := $(if $(filter 0,$(shell id -u)),,sudo)
 
 .PHONY: help build-iso build-iso-docker install configure doctor update clean
 help:
-	@echo "make build-iso   build dist/librekiosk-amd64.iso (Debian host, needs live-build, root)"
+	@echo "make build-iso   build dist/librekiosk-amd64.iso (Debian 13 host only, root)"
 	@echo "make build-iso-docker  same, inside a Debian trixie container (Ubuntu/any host with Docker)"
 	@echo "make install     turn this Debian install into LibreKiosk (idempotent)"
 	@echo "make configure   validate and apply /etc/librekiosk/librekiosk.yml"

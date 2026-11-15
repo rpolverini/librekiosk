@@ -2,14 +2,11 @@
 
 ## A. Debian Live ISO
 
-Build with network access, on Linux (not macOS). On a Debian 13 host, as root:
+Build on Linux with Docker and network access (not macOS):
 
-    sudo apt install live-build
-    make build-iso          # -> dist/librekiosk-amd64.iso and dist/librekiosk-amd64.iso.sha256
+    make build-iso-docker   # -> dist/librekiosk-amd64.iso and dist/librekiosk-amd64.iso.sha256
 
-On Ubuntu (its live-build is too old for trixie) or any host with Docker, build in a container instead:
-
-    make build-iso-docker   # same output in dist/
+`make build-iso` (what the container runs) needs a Debian 13 host with a recent live-build; Ubuntu's is too old.
 
 Test in QEMU: `qemu-system-x86_64 -m 4096 -enable-kvm -cdrom dist/librekiosk-amd64.iso`
 (add `-bios /usr/share/ovmf/OVMF.fd` for UEFI). Write to USB with `dd if=dist/librekiosk-amd64.iso of=/dev/sdX bs=4M status=progress`.
