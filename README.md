@@ -22,6 +22,18 @@ available: right-click the desktop for the maintenance menu (quit Brave, Wi-Fi, 
 | Check the installation | `make doctor` |
 | Upgrade everything | `make update` |
 
+### Write the ISO to a USB stick (Linux)
+
+```bash
+(cd dist && sha256sum -c librekiosk-amd64.iso.sha256)   # verify
+lsblk                                           # find the stick, e.g. /dev/sdX (check the size!)
+sudo umount /dev/sdX* 2>/dev/null
+sudo dd if=dist/librekiosk-amd64.iso of=/dev/sdX bs=4M status=progress conv=fsync
+sync
+```
+
+`dd` erases the whole target device. A wrong `/dev/sdX` (your system disk) destroys your data. On macOS or Windows, use balenaEtcher or Rufus. Boot the stick (UEFI or legacy) from the BIOS boot menu.
+
 Docs: [installation](docs/installation.md) · [Wi-Fi](docs/wifi.md) · [Android remote](docs/remote-control.md)
 
 ## Layout
