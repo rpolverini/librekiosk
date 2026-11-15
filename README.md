@@ -16,7 +16,7 @@ available: right-click the desktop for the maintenance menu (quit Brave, Wi-Fi, 
 
 | Goal | Command |
 |---|---|
-| Build the ISO (Debian/Ubuntu host, root) | `sudo apt install live-build && make build-iso` → `dist/librekiosk-amd64.iso` + `.sha256` |
+| Build the ISO (Debian 13 host: root; Ubuntu/other: Docker) | `make build-iso-docker` or `sudo apt install live-build && make build-iso` → `dist/librekiosk-amd64.iso` + `.sha256` |
 | Convert an existing clean Debian install | `make install` (no disk changes, safe to re-run) |
 | Apply edited YAML | edit `/etc/librekiosk/librekiosk.yml`, then `make configure` (or reboot) |
 | Check the installation | `make doctor` |
