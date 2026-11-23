@@ -1,0 +1,5 @@
+Your branding. Replace these files (keep the names), then rebuild the ISO (make build-iso-docker).
+  splash.png  boot menu background (BIOS + UEFI), 640x480 PNG
+  fondo.png   desktop wallpaper AND boot splash while Linux loads; any size, 4:3 or 16:9 looks best
+Boot-menu timeout/title: hooks/normal/0200-bootmenu.hook.binary. Boot splash colours: hooks/live/0200-plymouth.hook.chroot.
+On an already-installed system: replace /usr/share/librekiosk/fondo.png and restart the session.

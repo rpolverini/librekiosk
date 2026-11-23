@@ -26,7 +26,9 @@ apt-get install -y brave-browser
 
 # LibreKiosk files. The YAML is only seeded, never overwritten.
 install -d /etc/librekiosk
-[ -e /etc/librekiosk/librekiosk.yml ] || install -m 644 "$ROOT/librekiosk.yml" /etc/librekiosk/librekiosk.yml
+src="$ROOT/librekiosk.yml"; [ -f "$src" ] || src="$ROOT/librekiosk_example.yml"
+[ -e /etc/librekiosk/librekiosk.yml ] || install -m 644 "$src" /etc/librekiosk/librekiosk.yml
+[ ! -f "$ROOT/live-build/config/branding/fondo.png" ] || install -Dm644 "$ROOT/live-build/config/branding/fondo.png" /usr/share/librekiosk/fondo.png
 install -Dm755 "$ROOT/config/bin/librekiosk-browser" /usr/local/bin/librekiosk-browser
 install -Dm755 "$ROOT/installer/configure.sh" /usr/local/bin/librekiosk-configure
 install -Dm755 "$ROOT/installer/doctor.sh" /usr/local/bin/librekiosk-doctor

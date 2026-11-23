@@ -1,0 +1,2 @@
+# ISO only (install.sh does not read this list): boot splash.
+plymouth

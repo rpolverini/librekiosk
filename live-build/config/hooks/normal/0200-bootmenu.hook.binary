@@ -1,0 +1,23 @@
+#!/bin/sh
+# Boot menu branding + auto-boot. Runs in the build dir; edit the two values below.
+set -e
+TIMEOUT=5        # seconds before the first entry boots on its own
+TITLE=LibreKiosk # replaces "Debian GNU/Linux" / "Debian" in menu text
+
+# Your logo: config/branding/splash.png (640x480); missing = keep the stock image.
+[ -f config/branding/splash.png ] && for d in binary/isolinux binary/boot/grub; do
+	[ -d "$d" ] && cp config/branding/splash.png "$d/splash.png"
+done
+
+for f in binary/isolinux/*.cfg; do
+	[ -f "$f" ] || continue
+	sed -i "s/Debian GNU\/Linux/$TITLE/g; s/Debian/$TITLE/g; s/^timeout .*/timeout $((TIMEOUT * 10))/" "$f"
+done
+# shortcut: isolinux.cfg may ship without a timeout line; add it when missing.
+grep -q '^timeout' binary/isolinux/isolinux.cfg 2>/dev/null || echo "timeout $((TIMEOUT * 10))" >> binary/isolinux/isolinux.cfg
+
+for f in binary/boot/grub/*.cfg; do
+	[ -f "$f" ] || continue
+	sed -i "s/Debian GNU\/Linux/$TITLE/g; s/Debian/$TITLE/g; /^ *set timeout=/d" "$f"
+	[ "${f##*/}" = grub.cfg ] && sed -i "1i set timeout=$TIMEOUT" "$f" || true
+done

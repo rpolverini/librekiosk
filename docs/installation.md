@@ -33,7 +33,7 @@ The live ISO does not install itself. To get a persistent system (Brave sessions
 
 ## Configuration
 
-Edit `/etc/librekiosk/librekiosk.yml` (annotated example: `librekiosk.yml`). It is validated before anything is
+Edit `/etc/librekiosk/librekiosk.yml` (annotated template: `librekiosk_example.yml`; copy it to `librekiosk.yml` before `make install` or building the ISO to preseed it). It is validated before anything is
 applied; an invalid file changes nothing. Applied at every boot, or run `make configure`.
 Hiding the address bar or tabs runs Brave in `--app` mode, which hides both.
 

@@ -1,0 +1,28 @@
+#!/bin/sh
+# Boot splash = branding/fondo.png, scaled to fit and centred on a dark-navy background.
+# Change the background colour (0-1 RGB) in the script below if your image needs another.
+set -e
+t=/usr/share/plymouth/themes/librekiosk
+install -Dm644 /opt/librekiosk/live-build/config/branding/fondo.png "$t/fondo.png"
+cat > "$t/librekiosk.plymouth" <<EOT
+[Plymouth Theme]
+Name=LibreKiosk
+Description=LibreKiosk boot splash
+ModuleName=script
+
+[script]
+ImageDir=$t
+ScriptFile=$t/librekiosk.script
+EOT
+cat > "$t/librekiosk.script" <<'EOT'
+Window.SetBackgroundTopColor(0.01, 0.05, 0.15);
+Window.SetBackgroundBottomColor(0.01, 0.05, 0.15);
+img = Image("fondo.png");
+s = Math.Min(Window.GetWidth() / img.GetWidth(), Window.GetHeight() / img.GetHeight());
+img = img.Scale(img.GetWidth() * s, img.GetHeight() * s);
+logo = Sprite(img);
+logo.SetX(Window.GetWidth() / 2 - img.GetWidth() / 2);
+logo.SetY(Window.GetHeight() / 2 - img.GetHeight() / 2);
+EOT
+plymouth-set-default-theme librekiosk
+update-initramfs -u

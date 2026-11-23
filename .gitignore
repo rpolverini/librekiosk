@@ -2,3 +2,5 @@ dist/
 build/
 *.log
 secrets.yml
+librekiosk.yml
+.DS_Store

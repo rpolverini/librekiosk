@@ -10,8 +10,10 @@ rm -rf build && mkdir -p build dist
 cp -r live-build/. build/
 stage=build/config/includes.chroot/opt/librekiosk
 mkdir -p "$stage/live-build/config"
-cp -r installer config librekiosk.yml "$stage/"
-cp -r live-build/config/package-lists "$stage/live-build/config/"
+cp -r installer config "$stage/"
+# Your own librekiosk.yml (git-ignored) wins over the shipped example.
+[ -f librekiosk.yml ] && cp librekiosk.yml "$stage/librekiosk.yml" || cp librekiosk_example.yml "$stage/librekiosk.yml"
+cp -r live-build/config/package-lists live-build/config/branding "$stage/live-build/config/"
 
 ( cd build && lb clean --purge >/dev/null 2>&1 || true; lb config && lb build )
 

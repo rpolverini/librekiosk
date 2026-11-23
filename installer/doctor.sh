@@ -5,7 +5,7 @@ ok()   { echo "  ok    $*"; }
 fail() { echo "  FAIL  $*"; rc=1; }
 chk()  { if "${@:2}" >/dev/null 2>&1; then ok "$1"; else fail "$1"; fi; }
 
-for p in xorg openbox lightdm network-manager network-manager-gnome kdeconnect brave-browser python3-yaml; do
+for p in xorg openbox lightdm network-manager network-manager-gnome kdeconnect pasystray brave-browser python3-yaml; do
   chk "package $p" dpkg -s "$p"
 done
 chk "config valid" librekiosk-configure --check

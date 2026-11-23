@@ -12,6 +12,7 @@ network-manager-gnome
 kdeconnect
 pipewire-audio
 pavucontrol
+pasystray
 fonts-noto-core
 fonts-noto-color-emoji
 python3-yaml
@@ -19,3 +20,4 @@ sudo
 curl
 ca-certificates
 gnupg
+feh

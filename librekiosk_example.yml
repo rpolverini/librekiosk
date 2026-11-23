@@ -5,6 +5,7 @@ system:
   user: "libre"                 # account used for the graphical session and Brave
   disable_screen_blanking: true
   disable_suspend: true
+  volume: 40                    # output volume (0-100) set at every session start, unmuted
 
 browser:
   homepage: "https://www.youtube.com/"
