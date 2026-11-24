@@ -1,23 +1,45 @@
 #!/bin/sh
-# Boot menu branding + auto-boot. Runs in the build dir; edit the two values below.
+# Boot menu branding + auto-boot. Edit the two values below.
+# Never fails the build (cosmetic): prints a warning if the bootloader files are not where expected.
 set -e
 TIMEOUT=5        # seconds before the first entry boots on its own
 TITLE=LibreKiosk # replaces "Debian GNU/Linux" / "Debian" in menu text
 
+echo "bootmenu hook: pwd=$(pwd)"
+# The hook's working directory differs between live-build versions: find the ISO tree.
+B=
+for c in binary . ..; do
+	if [ -d "$c/isolinux" ] || [ -d "$c/boot/grub" ]; then B=$c; break; fi
+done
+if [ -z "$B" ]; then
+	echo "bootmenu hook WARNING: no isolinux/ or boot/grub/ found; boot menu left as stock. Contents:" >&2
+	ls -la . binary 2>&1 >&2 || true
+	exit 0
+fi
+echo "bootmenu hook: bootloader tree = $B"
+
 # Your logo: config/branding/splash.png (640x480); missing = keep the stock image.
-[ -f config/branding/splash.png ] && for d in binary/isolinux binary/boot/grub; do
-	[ -d "$d" ] && cp config/branding/splash.png "$d/splash.png"
-done
+splash=
+for c in config/branding/splash.png ../config/branding/splash.png; do [ -f "$c" ] && splash=$c && break; done
+if [ -n "$splash" ]; then
+	for d in "$B/isolinux" "$B/boot/grub"; do [ -d "$d" ] && cp "$splash" "$d/splash.png"; done
+fi
 
-for f in binary/isolinux/*.cfg; do
-	[ -f "$f" ] || continue
-	sed -i "s/Debian GNU\/Linux/$TITLE/g; s/Debian/$TITLE/g; s/^timeout .*/timeout $((TIMEOUT * 10))/" "$f"
-done
-# shortcut: isolinux.cfg may ship without a timeout line; add it when missing.
-grep -q '^timeout' binary/isolinux/isolinux.cfg 2>/dev/null || echo "timeout $((TIMEOUT * 10))" >> binary/isolinux/isolinux.cfg
+if [ -d "$B/isolinux" ]; then
+	for f in "$B"/isolinux/*.cfg; do
+		[ -f "$f" ] || continue
+		sed -i "s/Debian GNU\/Linux/$TITLE/g; s/Debian/$TITLE/g; s/^timeout .*/timeout $((TIMEOUT * 10))/" "$f"
+	done
+	# shortcut: isolinux.cfg may ship without a timeout line; add it when missing.
+	[ -f "$B/isolinux/isolinux.cfg" ] && ! grep -q '^timeout' "$B/isolinux/isolinux.cfg" &&
+		echo "timeout $((TIMEOUT * 10))" >> "$B/isolinux/isolinux.cfg"
+fi
 
-for f in binary/boot/grub/*.cfg; do
-	[ -f "$f" ] || continue
-	sed -i "s/Debian GNU\/Linux/$TITLE/g; s/Debian/$TITLE/g; /^ *set timeout=/d" "$f"
-	[ "${f##*/}" = grub.cfg ] && sed -i "1i set timeout=$TIMEOUT" "$f" || true
-done
+if [ -d "$B/boot/grub" ]; then
+	for f in "$B"/boot/grub/*.cfg; do
+		[ -f "$f" ] || continue
+		sed -i "s/Debian GNU\/Linux/$TITLE/g; s/Debian/$TITLE/g; /^ *set timeout=/d" "$f"
+		[ "${f##*/}" = grub.cfg ] && sed -i "1i set timeout=$TIMEOUT" "$f"
+	done
+fi
+exit 0
