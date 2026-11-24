@@ -41,6 +41,10 @@ if not re.fullmatch(r"[a-z_][a-z0-9_-]{0,31}", user):
 if not re.match(r"https?://\S+$", home):
     sys.exit("browser.homepage: must be an http(s) URL")
 
+prof = get("browser.profile", str, "persistent")
+if prof not in ("persistent", "locked"):
+    sys.exit("browser.profile: must be persistent or locked")
+
 vol = get("system.volume", int, 40)
 if isinstance(vol, bool) or not 0 <= vol <= 100:
     sys.exit("system.volume: must be an integer 0-100")
@@ -69,7 +73,7 @@ out = dict(
     LK_KDECONNECT=b("kdeconnect.enabled", True),
     LK_NO_BLANK=b("system.disable_screen_blanking", True),
     LK_NO_SUSPEND=b("system.disable_suspend", True),
-    LK_VOLUME=vol,
+    LK_VOLUME=vol, LK_PROFILE=prof,
     LK_WIFI=int(wifi_on), LK_SSID=ssid, LK_PSK=psk,
     LK_WIFI_AUTO=b("wifi.autoconnect", True),
     LK_WIFI_UUID=uuid.uuid5(uuid.NAMESPACE_DNS, "librekiosk-wifi"),
@@ -86,7 +90,7 @@ systemd_up() { [ -d /run/systemd/system ]; }   # false inside live-build chroot
 
 # Shell-sourceable settings for the Openbox autostart and browser wrapper (no secrets).
 install -d /etc/librekiosk
-for v in LK_HOMEPAGE LK_FULLSCREEN LK_ADDRESS_BAR LK_TABS LK_RESTART LK_KDECONNECT LK_NO_BLANK LK_VOLUME; do
+for v in LK_HOMEPAGE LK_FULLSCREEN LK_ADDRESS_BAR LK_TABS LK_RESTART LK_KDECONNECT LK_NO_BLANK LK_VOLUME LK_PROFILE; do
   printf '%s=%q\n' "$v" "${!v}"
 done > /etc/librekiosk/env
 

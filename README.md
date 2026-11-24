@@ -75,6 +75,31 @@ that ISO starts with your Wi-Fi and homepage. The password sits in plain text in
 
 Boot menu timeout (5 s) and title: `live-build/config/hooks/normal/0200-bootmenu.hook.binary`.
 
+## Logins that persist (Netflix, etc.), then lock
+
+Brave keeps cookies and saved passwords in `~/.config/BraveSoftware`. A live USB runs from RAM, so by default
+**everything is lost at reboot**. Pick one:
+
+1. **Install to disk** (`make install` on Debian): the profile persists on its own.
+2. **Live USB with persistence:** after writing the ISO, add a partition labeled `persistence` in the free space
+   of the stick (`/dev/sdX` = the stick, check with `lsblk`; this edits the partition table):
+
+       sudo parted /dev/sdX --script mkpart primary ext4 <end of ISO, e.g. 3GiB> 100%
+       sudo mkfs.ext4 -L persistence /dev/sdX3        # 3rd partition on a hybrid ISO stick: check with lsblk
+       sudo mount /dev/sdX3 /mnt && echo "/home union" | sudo tee /mnt/persistence.conf && sudo umount /mnt
+
+   The ISO already boots with `persistence`; without that partition it is ignored.
+
+**Set up, then lock.** `browser.profile` in `librekiosk.yml`:
+
+- `persistent` (default): everything Brave saves survives reboots. Log in to your services and tick "remember
+  password", then close Brave with right-click desktop → **Quit Brave** (flushes cookies to disk).
+- `locked`: each boot starts from a copy of that saved profile in RAM. The logins stay, but anything done during
+  the session (new logins, history, changed settings) is gone at reboot. Set it, then `make configure` and reboot.
+
+To change a login later, go back to `persistent`, fix it, quit Brave, and lock again. The saved password store is
+unencrypted-at-rest (`--password-store=basic`): anyone with the disk or stick can read it.
+
 Docs: [installation](docs/installation.md) · [Wi-Fi](docs/wifi.md) · [Android remote](docs/remote-control.md)
 
 ## Layout

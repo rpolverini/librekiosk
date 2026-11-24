@@ -12,6 +12,8 @@ browser:
   fullscreen: false
   show_address_bar: true        # Brave cannot hide these separately: if either is
   show_tabs: true               # false, Brave runs in --app mode (no bar, no tabs)
+  profile: "persistent"         # persistent = logins/cookies/passwords are saved (use this to set up services)
+                                # locked = start from the saved profile but forget everything at reboot
   restart_on_crash: true
   shields: true
 

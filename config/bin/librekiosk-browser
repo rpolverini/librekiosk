@@ -13,6 +13,18 @@ else
   target=()
 fi
 
+# locked: run from a throw-away copy of the saved profile, so the logins/cookies saved earlier are
+# available but nothing done in this session survives a reboot.
+if [ "${LK_PROFILE:-persistent}" = locked ]; then
+  gold=$HOME/.config/BraveSoftware/Brave-Browser
+  tmp=${XDG_RUNTIME_DIR:-/tmp}/librekiosk-profile
+  if [ ! -d "$tmp" ]; then
+    mkdir -p "$tmp"
+    [ -d "$gold" ] && cp -a "$gold/." "$tmp/" && rm -f "$tmp"/Singleton*
+  fi
+  flags+=("--user-data-dir=$tmp")
+fi
+
 while true; do
   brave-browser "${flags[@]}" "${target[@]}"
   rc=$?
