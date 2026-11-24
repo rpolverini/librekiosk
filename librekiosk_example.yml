@@ -1,10 +1,10 @@
 # LibreKiosk configuration. Installed to /etc/librekiosk/librekiosk.yml.
 # Validated and applied by librekiosk-configure (at every boot, or `make configure`).
 system:
-  hostname: "librekiosk"
+  hostname: "librekiosk-{id}"   # {id} = last 6 hex of the PC's MAC, so 100 PCs from one ISO get different names
   user: "libre"                 # account used for the graphical session and Brave
-  disable_screen_blanking: true
-  disable_suspend: true
+  disable_screen_blanking: true # true = screen never goes black/off after idle (xset s off, -dpms)
+  disable_suspend: true         # true = the PC never sleeps/hibernates (masks systemd sleep targets); false = default Debian behaviour
   volume: 40                    # output volume (0-100) set at every session start, unmuted
 
 browser:

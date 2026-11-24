@@ -10,7 +10,7 @@ CONF=${1:-/etc/librekiosk/librekiosk.yml}
 
 # Validation happens before anything is touched: a bad file applies nothing.
 vars=$(python3 -I - "$CONF" <<'PY'
-import re, shlex, sys, uuid, yaml
+import os, re, shlex, sys, uuid, yaml
 
 def load(p):
     with open(p) as f:
@@ -32,6 +32,9 @@ def get(path, typ, default, src=c):
     return n
 
 host = get("system.hostname", str, "librekiosk")
+if "{id}" in host:  # last 6 hex digits of the first NIC's MAC: stable and unique per PC
+    macs = sorted(open(f"/sys/class/net/{n}/address").read().strip() for n in os.listdir("/sys/class/net") if n != "lo")
+    host = host.replace("{id}", (macs[0].replace(":", "")[-6:] if macs else "000000"))
 user = get("system.user", str, "libre")
 home = get("browser.homepage", str, "https://www.youtube.com/")
 if not re.fullmatch(r"[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?", host):

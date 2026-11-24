@@ -11,5 +11,5 @@ lb config noauto \
 	--memtest none \
 	--iso-application LibreKiosk \
 	--iso-volume LIBREKIOSK \
-	--bootappend-live "boot=live components quiet splash persistence username=libre hostname=librekiosk" \
+	--bootappend-live "boot=live components quiet splash persistence username=libre" \
 	"${@}"
