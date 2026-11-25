@@ -22,7 +22,19 @@ available: right-click the desktop for the maintenance menu (quit Brave, Wi-Fi, 
 | Check the installation | `make doctor` |
 | Upgrade everything | `make update` |
 
-### Write the ISO to a USB stick (Linux)
+## Deploy checklist (new image → working stick)
+
+1. `git pull`, then edit your `librekiosk.yml` (copy of `librekiosk_example.yml`): `wifi.ssid` exactly as the
+   network is spelled (case-sensitive), `wifi.password`, `browser.homepage`, `hostname: "librekiosk-{id}"`.
+   Then `make build-iso-docker`.
+2. `make write-usb DEV=/dev/sdX` (Linux; erases the stick). Wait for the `OK: ... ready` line.
+3. Boot the stick and run `mount | grep sdb3`: it must show the partition mounted under `/home` (use your stick's name).
+4. Log in to your services, save a bookmark, quit with right-click desktop → **Quit Brave**, reboot, and check it
+   is still there. Then set `browser.profile: "locked"` if you want it frozen (see below).
+
+For many PCs, prepare one stick like this and clone it with `dd`.
+
+### Write the ISO to a USB stick (Linux, manual)
 
 ```bash
 (cd dist && sha256sum -c librekiosk-amd64.iso.sha256)   # verify
