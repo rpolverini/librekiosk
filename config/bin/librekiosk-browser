@@ -26,6 +26,8 @@ if [ "${LK_PROFILE:-persistent}" = locked ]; then
 fi
 
 while true; do
+  # A persisted profile keeps a stale lock after a hard power-off or a hostname change; this wrapper is the only launcher.
+  pgrep -x brave >/dev/null || rm -f "${tmp:-$HOME/.config/BraveSoftware/Brave-Browser}"/Singleton*
   brave-browser "${flags[@]}" "${target[@]}"
   rc=$?
   case $rc in 0|130|143) exit 0 ;; esac   # closed normally or killed by the "Quit Brave" menu item
