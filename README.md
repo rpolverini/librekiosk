@@ -73,7 +73,7 @@ that ISO starts with your Wi-Fi and homepage. The password sits in plain text in
 | `splash.png` | boot menu background, 640x480 |
 | `fondo.png` | desktop wallpaper and boot splash (scaled to fit, centred) |
 
-Boot menu timeout (5 s) and title: `live-build/config/hooks/normal/0200-bootmenu.hook.binary`.
+Boot menu timeout (2.5 s; 3 s on UEFI) and title: `live-build/config/hooks/normal/0200-bootmenu.hook.binary`.
 
 ## Logins that persist (Netflix, etc.), then lock
 
@@ -81,14 +81,13 @@ Brave keeps cookies and saved passwords in `~/.config/BraveSoftware`. A live USB
 **everything is lost at reboot**. Pick one:
 
 1. **Install to disk** (`make install` on Debian): the profile persists on its own.
-2. **Live USB with persistence:** after writing the ISO, add a partition labeled `persistence` in the free space
-   of the stick (`/dev/sdX` = the stick, check with `lsblk`; this edits the partition table):
+2. **Live USB with persistence:** one command writes the ISO, adds the `persistence` partition and checks the result
+   (Linux, root; `/dev/sdX` = the stick, check with `lsblk`; it ERASES the stick and refuses non-USB disks):
 
-       sudo parted /dev/sdX --script mkpart primary ext4 <end of ISO, e.g. 3GiB> 100%
-       sudo mkfs.ext4 -L persistence /dev/sdX3        # 3rd partition on a hybrid ISO stick: check with lsblk
-       sudo mount /dev/sdX3 /mnt && echo "/home union" | sudo tee /mnt/persistence.conf && sudo umount /mnt
+       make write-usb DEV=/dev/sdX
 
-   The ISO already boots with `persistence`; without that partition it is ignored.
+   It prints `OK: ... ready` only if the ISO on the stick matches `dist/`, the partition is labeled `persistence`
+   and `persistence.conf` (`/home union`) exists. For 100 sticks, prepare one this way and clone it with `dd`.
 
 **Set up, then lock.** `browser.profile` in `librekiosk.yml`:
 

@@ -2,7 +2,7 @@
 # Boot menu branding + auto-boot. Edit the two values below.
 # Never fails the build (cosmetic): prints a warning if the bootloader files are not where expected.
 set -e
-TIMEOUT=5        # seconds before the first entry boots on its own
+TIMEOUT_DS=25    # tenths of a second before the first entry boots on its own (25 = 2.5 s)
 TITLE=LibreKiosk # replaces "Debian GNU/Linux" / "Debian" in menu text
 
 echo "bootmenu hook: pwd=$(pwd)"
@@ -28,18 +28,18 @@ fi
 if [ -d "$B/isolinux" ]; then
 	for f in "$B"/isolinux/*.cfg; do
 		[ -f "$f" ] || continue
-		sed -i "s/Debian GNU\/Linux/$TITLE/g; s/Debian/$TITLE/g; s/^timeout .*/timeout $((TIMEOUT * 10))/" "$f"
+		sed -i "s/Debian GNU\/Linux/$TITLE/g; s/Debian/$TITLE/g; s/^timeout .*/timeout $TIMEOUT_DS/" "$f"
 	done
 	# shortcut: isolinux.cfg may ship without a timeout line; add it when missing.
 	[ -f "$B/isolinux/isolinux.cfg" ] && ! grep -q '^timeout' "$B/isolinux/isolinux.cfg" &&
-		echo "timeout $((TIMEOUT * 10))" >> "$B/isolinux/isolinux.cfg"
+		echo "timeout $TIMEOUT_DS" >> "$B/isolinux/isolinux.cfg"
 fi
 
 if [ -d "$B/boot/grub" ]; then
 	for f in "$B"/boot/grub/*.cfg; do
 		[ -f "$f" ] || continue
 		sed -i "s/Debian GNU\/Linux/$TITLE/g; s/Debian/$TITLE/g; /^ *set timeout=/d" "$f"
-		[ "${f##*/}" = grub.cfg ] && sed -i "1i set timeout=$TIMEOUT" "$f"
+		[ "${f##*/}" = grub.cfg ] && sed -i "1i set timeout=$(((TIMEOUT_DS + 9) / 10))" "$f"
 	done
 fi
 exit 0
