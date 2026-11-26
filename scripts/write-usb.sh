@@ -16,7 +16,8 @@ read -rp "ERASE $dev and write LibreKiosk? Type the device name to confirm: " an
 for p in $(lsblk -nrpo NAME "$dev" | tail -n +2); do umount "$p" 2>/dev/null || true; done
 dd if="$iso" of="$dev" bs=4M status=progress conv=fsync
 sync
-echo ',,L' | sfdisk --append "$dev" >/dev/null     # new partition in the free space after the ISO
+# --wipe never/--force: the hybrid ISO has an iso9660 signature and a 2048-vs-512 block warning; both are expected.
+echo ',,L' | sfdisk --append --force --wipe never --wipe-partitions never "$dev"   # new partition after the ISO
 partprobe "$dev"; udevadm settle
 part=$(lsblk -nrpo NAME,TYPE "$dev" | awk '$2=="part"{p=$1} END{print p}')   # the last partition = the new one
 mkfs.ext4 -qF -L persistence "$part"
