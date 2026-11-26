@@ -14,8 +14,8 @@ read -rp "ERASE $dev and write LibreKiosk? Type the device name to confirm: " an
 [ "$ans" = "$dev" ] || { echo aborted >&2; exit 1; }
 
 for p in $(lsblk -nrpo NAME "$dev" | tail -n +2); do umount "$p" 2>/dev/null || true; done
-echo "[1/4] Writing the ISO. At 100% it keeps flushing to the stick with no output (minutes on USB 2.0): do not unplug."
-dd if="$iso" of="$dev" bs=4M status=progress conv=fsync
+echo "[1/4] Writing the ISO (direct to the stick, so the progress shown is real)..."
+dd if="$iso" of="$dev" bs=4M status=progress oflag=direct
 echo "[2/4] Creating the persistence partition..."
 sync
 # The hybrid ISO has an iso9660 signature and a 2048-vs-512 block warning (expected), and sfdisk may exit non-zero
@@ -37,11 +37,12 @@ mount "$part" "$mnt"
 printf '/home union\n/etc/librekiosk union\n' > "$mnt/persistence.conf"
 sync
 
-echo "[3/4] Verifying the ISO on the stick (reads it all back, about a minute)..."
+echo "[3/4] Verifying the ISO on the stick (reads it all back)..."
 # Self-check: fail loudly if anything did not land.
 grep -qx "/home union" "$mnt/persistence.conf" && grep -qx "/etc/librekiosk union" "$mnt/persistence.conf" || { echo "FAIL: persistence.conf missing" >&2; exit 1; }
 [ "$(blkid -s LABEL -o value "$part")" = persistence ] || { echo "FAIL: label is not 'persistence'" >&2; exit 1; }
 # Skip the first 32 KiB: that is the partition table, which we just changed on purpose.
-cmp -i 32768 -n "$(( $(stat -c%s "$iso") - 32768 ))" "$iso" "$dev" || { echo "FAIL: ISO on the stick differs from dist/" >&2; exit 1; }
+n=$(( $(stat -c%s "$iso") - 32768 ))
+cmp -i 32768:0 -n "$n" "$iso" <(dd if="$dev" bs=16M iflag=skip_bytes,count_bytes skip=32768 count="$n" status=progress) || { echo "FAIL: ISO on the stick differs from dist/" >&2; exit 1; }
 echo "[4/4] Done."
 echo "OK: $dev ready (ISO verified, $part labeled persistence, persistence.conf written)."

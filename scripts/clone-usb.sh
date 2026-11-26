@@ -61,7 +61,7 @@ write_cmd() {
 		read -rp "ERASE it and clone? [Enter = yes, s = skip] " a
 		if [ "$a" != s ]; then
 			unmount_all "$dev"
-			if dd if="$img" of="$dev" bs=16M conv=fsync status=progress && sync && cmp -n "$size" "$img" "$dev"; then
+			if dd if="$img" of="$dev" bs=16M oflag=direct status=progress && sync && echo "Verifying..." && cmp "$img" <(dd if="$dev" bs=16M iflag=count_bytes count="$size" status=progress); then
 				n=$((n + 1)); echo "OK: stick #$n verified."
 			else
 				echo "FAILED on $dev: do not use this stick." >&2
