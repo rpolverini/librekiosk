@@ -1,10 +1,12 @@
 SUDO := $(if $(filter 0,$(shell id -u)),,sudo)
 
-.PHONY: help write-usb build-iso build-iso-docker install configure doctor update clean
+.PHONY: help clone-image clone-usb write-usb build-iso build-iso-docker install configure doctor update clean
 help:
 	@echo "make build-iso   build dist/librekiosk-amd64.iso (Debian 13 host only, root)"
 	@echo "make build-iso-docker  same, inside a Debian trixie container (Ubuntu/any host with Docker)"
 	@echo "make write-usb DEV=/dev/sdX  write the ISO + persistence partition to a USB stick (ERASES it)"
+	@echo "make clone-image            save the prepared master stick as dist/librekiosk-stick.img"
+	@echo "make clone-usb              clone that image onto stick after stick (guided)"
 	@echo "make install     turn this Debian install into LibreKiosk (idempotent)"
 	@echo "make configure   validate and apply /etc/librekiosk/librekiosk.yml"
 	@echo "make doctor      check the installation"
@@ -19,6 +21,10 @@ build-iso-docker:
 	  'apt-get update && apt-get install -y live-build make xorriso && make build-iso'
 write-usb:
 	$(SUDO) scripts/write-usb.sh "$(DEV)"
+clone-image:
+	$(SUDO) scripts/clone-usb.sh image
+clone-usb:
+	$(SUDO) scripts/clone-usb.sh write
 install:
 	$(SUDO) installer/install.sh
 configure:

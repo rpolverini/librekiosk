@@ -22,7 +22,7 @@ sync
 partprobe "$dev" 2>/dev/null || blockdev --rereadpt "$dev" 2>/dev/null || true
 udevadm settle; sleep 2
 before=$(lsblk -nrpo NAME,TYPE "$dev" | grep -c ' part$' || true)
-echo ',,L' | sfdisk --append --force --wipe never --wipe-partitions never "$dev" || echo "sfdisk exited non-zero; checking the result" >&2
+echo ',4GiB,L' | sfdisk --append --force --wipe never --wipe-partitions never "$dev" || echo "sfdisk exited non-zero; checking the result" >&2
 partprobe "$dev" 2>/dev/null || blockdev --rereadpt "$dev" 2>/dev/null || true
 udevadm settle; sleep 2
 after=$(lsblk -nrpo NAME,TYPE "$dev" | grep -c ' part$' || true)
@@ -31,11 +31,12 @@ part=$(lsblk -nrpo NAME,TYPE "$dev" | awk '$2=="part"{p=$1} END{print p}')   # t
 mkfs.ext4 -qF -L persistence "$part"
 mnt=$(mktemp -d); trap 'umount "$mnt" 2>/dev/null; rmdir "$mnt"' EXIT
 mount "$part" "$mnt"
-echo "/home union" > "$mnt/persistence.conf"
+# /etc/librekiosk persists too, so "browser.profile: locked" can be set on the stick itself.
+printf '/home union\n/etc/librekiosk union\n' > "$mnt/persistence.conf"
 sync
 
 # Self-check: fail loudly if anything did not land.
-[ "$(cat "$mnt/persistence.conf")" = "/home union" ] || { echo "FAIL: persistence.conf missing" >&2; exit 1; }
+grep -qx "/home union" "$mnt/persistence.conf" && grep -qx "/etc/librekiosk union" "$mnt/persistence.conf" || { echo "FAIL: persistence.conf missing" >&2; exit 1; }
 [ "$(blkid -s LABEL -o value "$part")" = persistence ] || { echo "FAIL: label is not 'persistence'" >&2; exit 1; }
 # Skip the first 32 KiB: that is the partition table, which we just changed on purpose.
 cmp -i 32768 -n "$(( $(stat -c%s "$iso") - 32768 ))" "$iso" "$dev" || { echo "FAIL: ISO on the stick differs from dist/" >&2; exit 1; }

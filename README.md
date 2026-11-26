@@ -37,8 +37,36 @@ Other commands: `make configure` (apply an edited YAML), `make doctor` (check), 
 4. Log in to your services, save a bookmark, quit with right-click desktop → **Quit Brave**, reboot and check it is
    still there. Then set `browser.profile: "locked"` if you want it frozen (see below).
 
-For many PCs, prepare one stick like this and clone it with `dd`. On macOS/Windows you can write the ISO with
+For many PCs, see [Cloning many sticks](#cloning-many-sticks). On macOS/Windows you can write the ISO with
 balenaEtcher or Rufus, but that gives **no persistence partition**; use a Linux machine for `write-usb`.
+
+## Cloning many sticks
+
+`make write-usb` takes minutes per stick and needs you to type the device. For many PCs, prepare **one master**
+and clone it; the tools guide you on screen (plug a stick, it is detected, confirm, remove it, plug the next):
+
+    make clone-image    # master stick  -> dist/librekiosk-stick.img   (ISO + 4 GiB persistence, about 5 GB)
+    make clone-usb      # image -> stick after stick; each is verified byte by byte
+
+You never type a device name: the stick you plug in is the one used, and only USB disks can be picked, so the
+system disk is safe. Each stick must be at least as big as the image. Ctrl+C ends the loop and prints the count.
+
+**Case 1: clean sticks (users log in themselves).** `make write-usb` once, boot it once to check it works,
+`make clone-image`, `make clone-usb`. Use a master you have not logged in with.
+
+**Case 2: pre-logged sticks (a company's internal system).** The logins travel inside the clones:
+1. `make write-usb DEV=/dev/sdX`: this is the master. Boot it on a PC.
+2. Log in to the services (Netflix, intranet, ...), tick "remember password", then right-click the desktop →
+   **Quit Brave**.
+3. Optional, to freeze it: in a terminal run `sudoedit /etc/librekiosk/librekiosk.yml`, set
+   `browser.profile: "locked"`, then `sudo librekiosk-configure`. Reboot once and check the logins are still there.
+4. Shut down properly from the menu (do not unplug the master, or the clone image may be inconsistent).
+5. On the Linux machine: plug the master, `make clone-image`; then `make clone-usb` and feed it new sticks.
+
+Caveats: every clone holds the same logins and saved passwords, readable by anyone who has the stick (the password
+store is unencrypted), so treat each stick like a key. Some services limit simultaneous sessions or devices per
+account, and some tie a login to a device, so test with two clones before making 100. Wi-Fi and homepage come from
+the ISO's `librekiosk.yml`; to change them for a batch, rebuild the ISO and start from a new master.
 
 ## Troubleshooting
 
@@ -95,7 +123,8 @@ from RAM and **loses everything at reboot**. Pick one:
 - `persistent` (default): everything Brave saves survives reboots. Log in to your services and tick "remember
   password", then close Brave with right-click desktop → **Quit Brave** (flushes cookies to disk).
 - `locked`: each boot starts from a copy of that saved profile in RAM. The logins stay, but anything done during
-  the session (new logins, history, changed settings) is gone at reboot. Set it, then `make configure` and reboot.
+  the session (new logins, history, changed settings) is gone at reboot. On a persistent USB stick, edit `/etc/librekiosk/librekiosk.yml` on the stick itself (that folder persists), run
+  `sudo librekiosk-configure`, and reboot.
 
 To change a login later, go back to `persistent`, fix it, quit Brave, and lock again. The saved password store is
 unencrypted-at-rest (`--password-store=basic`): anyone with the disk or stick can read it.
