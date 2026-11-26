@@ -16,9 +16,14 @@ read -rp "ERASE $dev and write LibreKiosk? Type the device name to confirm: " an
 for p in $(lsblk -nrpo NAME "$dev" | tail -n +2); do umount "$p" 2>/dev/null || true; done
 dd if="$iso" of="$dev" bs=4M status=progress conv=fsync
 sync
-# --wipe never/--force: the hybrid ISO has an iso9660 signature and a 2048-vs-512 block warning; both are expected.
-echo ',,L' | sfdisk --append --force --wipe never --wipe-partitions never "$dev"   # new partition after the ISO
-partprobe "$dev"; udevadm settle
+# The hybrid ISO has an iso9660 signature and a 2048-vs-512 block warning (expected), and sfdisk may exit non-zero
+# because the kernel cannot re-read the table. So judge by the result: did a new partition appear?
+before=$(lsblk -nrpo NAME,TYPE "$dev" | grep -c ' part$' || true)
+echo ',,L' | sfdisk --append --force --wipe never --wipe-partitions never "$dev" || echo "sfdisk exited non-zero; checking the result" >&2
+partprobe "$dev" 2>/dev/null || blockdev --rereadpt "$dev" 2>/dev/null || true
+udevadm settle; sleep 2
+after=$(lsblk -nrpo NAME,TYPE "$dev" | grep -c ' part$' || true)
+[ "$after" -gt "$before" ] || { echo "FAIL: no new partition was created on $dev ($before -> $after)" >&2; exit 1; }
 part=$(lsblk -nrpo NAME,TYPE "$dev" | awk '$2=="part"{p=$1} END{print p}')   # the last partition = the new one
 mkfs.ext4 -qF -L persistence "$part"
 mnt=$(mktemp -d); trap 'umount "$mnt" 2>/dev/null; rmdir "$mnt"' EXIT
