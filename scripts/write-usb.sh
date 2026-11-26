@@ -18,6 +18,9 @@ dd if="$iso" of="$dev" bs=4M status=progress conv=fsync
 sync
 # The hybrid ISO has an iso9660 signature and a 2048-vs-512 block warning (expected), and sfdisk may exit non-zero
 # because the kernel cannot re-read the table. So judge by the result: did a new partition appear?
+# After dd the kernel still lists the stick's OLD partitions: re-read first so "before" is the real count.
+partprobe "$dev" 2>/dev/null || blockdev --rereadpt "$dev" 2>/dev/null || true
+udevadm settle; sleep 2
 before=$(lsblk -nrpo NAME,TYPE "$dev" | grep -c ' part$' || true)
 echo ',,L' | sfdisk --append --force --wipe never --wipe-partitions never "$dev" || echo "sfdisk exited non-zero; checking the result" >&2
 partprobe "$dev" 2>/dev/null || blockdev --rereadpt "$dev" 2>/dev/null || true
