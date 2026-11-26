@@ -37,5 +37,6 @@ sync
 # Self-check: fail loudly if anything did not land.
 [ "$(cat "$mnt/persistence.conf")" = "/home union" ] || { echo "FAIL: persistence.conf missing" >&2; exit 1; }
 [ "$(blkid -s LABEL -o value "$part")" = persistence ] || { echo "FAIL: label is not 'persistence'" >&2; exit 1; }
-cmp -n "$(stat -c%s "$iso")" "$iso" "$dev" || { echo "FAIL: ISO on the stick differs from dist/" >&2; exit 1; }
+# Skip the first 32 KiB: that is the partition table, which we just changed on purpose.
+cmp -i 32768 -n "$(( $(stat -c%s "$iso") - 32768 ))" "$iso" "$dev" || { echo "FAIL: ISO on the stick differs from dist/" >&2; exit 1; }
 echo "OK: $dev ready (ISO verified, $part labeled persistence, persistence.conf written)."
