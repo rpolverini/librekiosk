@@ -9,9 +9,9 @@ Build on Linux with Docker and network access (not macOS):
 `make build-iso` (what the container runs) needs a Debian 13 host with a recent live-build; Ubuntu's is too old.
 
 Test in QEMU: `qemu-system-x86_64 -m 4096 -enable-kvm -cdrom dist/librekiosk-amd64.iso`
-(add `-bios /usr/share/ovmf/OVMF.fd` for UEFI). Write to USB with `dd if=dist/librekiosk-amd64.iso of=/dev/sdX bs=4M status=progress`.
+(add `-bios /usr/share/ovmf/OVMF.fd` for UEFI). Write to USB (with the persistence partition) using `make write-usb DEV=/dev/sdX`; see the README.
 It boots as a live system, auto-logs in as `libre` (password `libre`) and opens Brave.
-Live mode keeps nothing across reboots.
+Without the persistence partition, live mode keeps nothing across reboots.
 
 ### Persistent install on an SSD
 
@@ -37,7 +37,7 @@ Edit `/etc/librekiosk/librekiosk.yml` (annotated template: `librekiosk_example.y
 applied; an invalid file changes nothing. Applied at every boot, or run `make configure`.
 Hiding the address bar or tabs runs Brave in `--app` mode, which hides both.
 
-## Untested
+## Still unverified
 
-Written without access to a Debian host. Needs a first real run of: `make build-iso`, QEMU boot, live-config
-reusing the pre-created `libre` user, the Brave policy used for `shields: false`, KDE Connect pairing, Wyse 7010.
+Verified on a Dell Wyse: ISO build, boot, Wi-Fi, Brave, persistence. Not yet verified: QEMU, `browser.profile: locked`,
+the Brave policy used for `shields: false`, KDE Connect pairing, other hardware.

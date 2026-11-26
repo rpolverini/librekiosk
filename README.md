@@ -1,7 +1,7 @@
 # LibreKiosk
 
-> **⚠️ BETA — nothing here has been tested yet.** The ISO has not been built, booted in QEMU, or run on
-> real hardware (Dell Wyse 7010 included). Expect broken scripts. Feedback and issues are welcome.
+> **BETA.** The ISO builds and boots on a real Dell Wyse; Wi-Fi, Brave and persistence work there. Not yet
+> verified: `locked` mode, KDE Connect pairing, `browser.shields: false`, other hardware. Feedback welcome.
 
 A lightweight Smart TV Linux for old PCs and thin clients (first target: Dell Wyse 7010).
 It is a regular Debian Stable (amd64) system: Xorg + Openbox + LightDM autologin, booting straight into
@@ -12,39 +12,33 @@ available: right-click the desktop for the maintenance menu (quit Brave, Wi-Fi, 
 > **Security:** the default account is `libre` / `libre` (development default). Run `passwd` before using
 > LibreKiosk on any untrusted network. Never commit real Wi-Fi passwords; use `wifi.secrets_file`.
 
-## Quick start
+## Which path do I use?
 
-| Goal | Command |
-|---|---|
-| Build the ISO (any Linux with Docker) | `make build-iso-docker` → `dist/librekiosk-amd64.iso` + `.sha256` |
-| Convert an existing clean Debian install | `make install` (no disk changes, safe to re-run) |
-| Apply edited YAML | edit `/etc/librekiosk/librekiosk.yml`, then `make configure` (or reboot) |
-| Check the installation | `make doctor` |
-| Upgrade everything | `make update` |
+| I want... | Use | Where |
+|---|---|---|
+| **A USB stick I can boot on many PCs** (live system, logins saved on the stick) | `make build-iso-docker` then `make write-usb DEV=/dev/sdX` | the Deploy checklist below |
+| **To turn a PC that already has Debian installed into LibreKiosk** (runs from its disk, no stick) | `make install` | [docs/installation.md](docs/installation.md) |
 
-## Deploy checklist (new image → working stick)
+They are two different ways to get the same system; you do not need both. `write-usb` is the one that creates
+the persistence partition (ISO + partition + checks in one go). `make install` needs no ISO and no extra partition:
+the disk already persists.
 
-1. `git pull`, then edit your `librekiosk.yml` (copy of `librekiosk_example.yml`): `wifi.ssid` exactly as the
-   network is spelled (case-sensitive), `wifi.password`, `browser.homepage`, `hostname: "librekiosk-{id}"`.
-   Then `make build-iso-docker`.
-2. `make write-usb DEV=/dev/sdX` (Linux; erases the stick). Wait for the `OK: ... ready` line.
-3. Boot the stick and run `mount | grep sdb3`: it must show the partition mounted under `/home` (use your stick's name).
-4. Log in to your services, save a bookmark, quit with right-click desktop → **Quit Brave**, reboot, and check it
-   is still there. Then set `browser.profile: "locked"` if you want it frozen (see below).
+Other commands: `make configure` (apply an edited YAML), `make doctor` (check), `make update` (upgrade).
 
-For many PCs, prepare one stick like this and clone it with `dd`.
+## Deploy checklist (USB stick)
 
-### Write the ISO to a USB stick (Linux, manual)
+1. `git pull`, then `cp librekiosk_example.yml librekiosk.yml` (first time) and edit it: `wifi.ssid` exactly as
+   the network is spelled (case-sensitive), `wifi.password`, `browser.homepage`, `hostname: "librekiosk-{id}"`.
+   Then `make build-iso-docker` (Linux with Docker) → `dist/librekiosk-amd64.iso`.
+2. `make write-usb DEV=/dev/sdX` (Linux, root). `lsblk` first: `sdX` is the stick, not your system disk. It erases the
+   stick, writes the ISO, adds the `persistence` partition and checks everything; wait for `OK: ... ready`.
+3. Boot the stick (UEFI or legacy, from the BIOS boot menu) and run `mount | grep sdb3` (your stick's name): it must
+   show the partition mounted under `/home`.
+4. Log in to your services, save a bookmark, quit with right-click desktop → **Quit Brave**, reboot and check it is
+   still there. Then set `browser.profile: "locked"` if you want it frozen (see below).
 
-```bash
-(cd dist && sha256sum -c librekiosk-amd64.iso.sha256)   # verify
-lsblk                                           # find the stick, e.g. /dev/sdX (check the size!)
-sudo umount /dev/sdX* 2>/dev/null
-sudo dd if=dist/librekiosk-amd64.iso of=/dev/sdX bs=4M status=progress conv=fsync
-sync
-```
-
-`dd` erases the whole target device. A wrong `/dev/sdX` (your system disk) destroys your data. On macOS or Windows, use balenaEtcher or Rufus. Boot the stick (UEFI or legacy) from the BIOS boot menu.
+For many PCs, prepare one stick like this and clone it with `dd`. On macOS/Windows you can write the ISO with
+balenaEtcher or Rufus, but that gives **no persistence partition**; use a Linux machine for `write-usb`.
 
 ## Troubleshooting
 
@@ -89,17 +83,12 @@ Boot menu timeout (2.5 s; 3 s on UEFI) and title: `live-build/config/hooks/norma
 
 ## Logins that persist (Netflix, etc.), then lock
 
-Brave keeps cookies and saved passwords in `~/.config/BraveSoftware`. A live USB runs from RAM, so by default
-**everything is lost at reboot**. Pick one:
+Brave keeps cookies and saved passwords in `~/.config/BraveSoftware`. A live USB without the persistence partition runs
+from RAM and **loses everything at reboot**. Pick one:
 
 1. **Install to disk** (`make install` on Debian): the profile persists on its own.
-2. **Live USB with persistence:** one command writes the ISO, adds the `persistence` partition and checks the result
-   (Linux, root; `/dev/sdX` = the stick, check with `lsblk`; it ERASES the stick and refuses non-USB disks):
-
-       make write-usb DEV=/dev/sdX
-
-   It prints `OK: ... ready` only if the ISO on the stick matches `dist/`, the partition is labeled `persistence`
-   and `persistence.conf` (`/home union`) exists. For 100 sticks, prepare one this way and clone it with `dd`.
+2. **Live USB with persistence:** `make write-usb` (see the Deploy checklist) creates the partition and
+   `persistence.conf` (`/home union`) for you.
 
 **Set up, then lock.** `browser.profile` in `librekiosk.yml`:
 
@@ -121,4 +110,4 @@ The ISO build runs the very same `installer/install.sh` as the "existing Debian"
 
 ## Status
 
-Beta MVP scaffold; see "Untested" in docs/installation.md for what is still unverified. License: MIT.
+See "Still unverified" in docs/installation.md. License: MIT.
